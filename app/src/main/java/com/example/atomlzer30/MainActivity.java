@@ -233,7 +233,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             byte[] sendBuf={0};
             sendBuf[0]=sendData;
-            Log.d("TAG","sendData:"+sendData);
+            //Log.d("TAG","sendData:"+sendData);
             //serialPortThread.sendSerialPort(sendBuf);
 
         }
