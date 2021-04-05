@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="horizontal"
+    android:background="@color/colorPrimaryDark"
     tools:context=".MainActivity">
     <LinearLayout
         android:layout_width="300dp"
@@ -117,7 +118,13 @@
         </LinearLayout>
     </LinearLayout>
     <LinearLayout
-        android:layout_width="730dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:background="@color/colorPrimaryDark"
@@ -129,8 +136,9 @@
             android:gravity="center"
             android:orientation="vertical">
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="280dp"
+                app:layout_widthPercent="50%"
                 android:background="@color/colorPrimary"
                 android:orientation="vertical">
                 <LinearLayout
@@ -313,6 +321,12 @@
                     </Button>
                 </LinearLayout>
             </LinearLayout>
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
 
         </LinearLayout>
         <LinearLayout
