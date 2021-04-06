@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Timer timerTask;//计时器
     private boolean state1=false,state2=false,state3=false,state4=false;//设备状态
     private byte sendData=0x20;
+    private Udp udp=new Udp();
     /***********控件初始化*************/
     protected DashboardView tempDashboardView,humDashboardView,levelDashboard;
     protected Button device1Button,device2Button,device3Button,device4Button;
@@ -71,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         device2Button.setOnClickListener(this);
         device3Button.setOnClickListener(this);
         device4Button.setOnClickListener(this);
+
 
         np1.setMinValue(0);
         np1.setMaxValue(100);
@@ -145,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return false;
             }
         });
-
+        mCpLoading.setOnClickListener(this);
         if (timerTask==null){
             timerTask = new Timer(true);
             timerTask.schedule(countTask, 500, 1000);
@@ -364,6 +366,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     countdown4=System.currentTimeMillis();
                     state4=false;
                 }
+                break;
+            case R.id.cp_loading:
+                Log.d("TAG","hello");
+                //new Udp.udpBroadCast("hello").start();
+                new Udp.udpReceiveBroadCast().start();
                 break;
         }
     }
