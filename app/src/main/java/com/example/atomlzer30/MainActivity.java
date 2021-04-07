@@ -2,7 +2,6 @@ package com.example.atomlzer30;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -15,12 +14,9 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.NumberPicker;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.liys.view.LineProView;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -31,7 +27,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Timer timerTask;//计时器
     private boolean state1=false,state2=false,state3=false,state4=false;//设备状态
     private byte sendData=0x20;
-    private Udp udp=new Udp();
+    private int temperature=25;
+    private int humidity =60;
+    private int level=90;
     /***********控件初始化*************/
     protected DashboardView tempDashboardView,humDashboardView,levelDashboard;
     protected Button device1Button,device2Button,device3Button,device4Button;
@@ -39,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected CircleProgress mCpLoading;
     protected MyNumberPicker np1,np2,np3,np4;
     protected LineProView lineProView1,lineProView2,lineProView3,lineProView4;
+    protected TextView temperatureTextView;
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
@@ -67,12 +66,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         lineProView2=findViewById(R.id.lineProView2);
         lineProView3=findViewById(R.id.lineProView3);
         lineProView4=findViewById(R.id.lineProView4);
+        temperatureTextView=findViewById(R.id.temperature);
 
         device1Button.setOnClickListener(this);
         device2Button.setOnClickListener(this);
         device3Button.setOnClickListener(this);
         device4Button.setOnClickListener(this);
-
+        temperatureTextView.setOnClickListener(this);
 
         np1.setMinValue(0);
         np1.setMaxValue(100);
@@ -237,6 +237,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             sendBuf[0]=sendData;
             //Log.d("TAG","sendData:"+sendData);
             //serialPortThread.sendSerialPort(sendBuf);
+            //发送udp数据格式
+            byte[] udpSendBuf=new byte[80];
+            System.arraycopy(DateForm.intToBytesArray(temperature),0,udpSendBuf,0,4);
+            System.arraycopy(DateForm.intToBytesArray(humidity),0,udpSendBuf,4,4);
+            System.arraycopy(DateForm.intToBytesArray(level),0,udpSendBuf,8,4);
+            System.arraycopy(DateForm.intToBytesArray((int)sendData),0,udpSendBuf,12,4);
+
+            System.arraycopy(DateForm.intToBytesArray(taskTime1),0,udpSendBuf,16,4);
+            System.arraycopy(DateForm.intToBytesArray(taskData1.getLastTime()),0,udpSendBuf,20,4);
+            System.arraycopy(DateForm.doubleToByteArray(taskData1.getProgess()),0,udpSendBuf,24,8);
+
+            System.arraycopy(DateForm.intToBytesArray(taskTime2),0,udpSendBuf,32,4);
+            System.arraycopy(DateForm.intToBytesArray(taskData1.getLastTime()),0,udpSendBuf,36,4);
+            System.arraycopy(DateForm.doubleToByteArray(taskData1.getProgess()),0,udpSendBuf,40,8);
+
+            System.arraycopy(DateForm.intToBytesArray(taskTime3),0,udpSendBuf,48,4);
+            System.arraycopy(DateForm.intToBytesArray(taskData1.getLastTime()),0,udpSendBuf,52,4);
+            System.arraycopy(DateForm.doubleToByteArray(taskData1.getProgess()),0,udpSendBuf,56,8);
+
+            System.arraycopy(DateForm.intToBytesArray(taskTime3),0,udpSendBuf,64,4);
+            System.arraycopy(DateForm.intToBytesArray(taskData1.getLastTime()),0,udpSendBuf,68,4);
+            System.arraycopy(DateForm.doubleToByteArray(taskData1.getProgess()),0,udpSendBuf,72,8);
+            new Udp.udpSendBroadCast(udpSendBuf).start();
+            //Log.d("TAG", Arrays.toString(udpSendBuf));
 
         }
     };
@@ -368,9 +392,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
             case R.id.cp_loading:
-                Log.d("TAG","hello");
-                //new Udp.udpBroadCast("hello").start();
+                //Log.d("TAG","hello");
+                //new Udp.udpSendBroadCast("hello").start();
                 new Udp.udpReceiveBroadCast().start();
+                break;
+            case R.id.temperature:
+                //new Udp.udpReceiveBroadCast().start();
                 break;
         }
     }

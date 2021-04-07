@@ -10,12 +10,12 @@ import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Arrays;
 import java.util.Enumeration;
 
 public class Udp {
     /* 用于 udpReceiveAndTcpSend 的3个变量 */
-    MulticastSocket ms = null;
-    DatagramPacket dp;
+
     /* 发送udp多播 */
     public static class udpSendBroadCast extends Thread {
         MulticastSocket sender = null;
@@ -27,44 +27,76 @@ public class Udp {
         public udpSendBroadCast(String dataString) {
             data = dataString.getBytes();
         }
+        public udpSendBroadCast(byte[] dataByte) {
+            data = dataByte;
+        }
 
         @Override
         public void run() {
             try {
-                DatagramSocket socket = new DatagramSocket(5887);
-                InetAddress serverAddress=InetAddress.getByName("192.168.1.255");
-//                sender = new MulticastSocket();
-//                group = InetAddress.getByName("224.0.0.1");
-//                dj = new DatagramPacket(data,data.length,group,6789);
-                DatagramPacket packet = new DatagramPacket(data, data.length, serverAddress, 6789);
-                socket.send(packet);
-                socket.close();
+                sender = new MulticastSocket();
+                group = InetAddress.getByName("232.10.11.12");
+                dj = new DatagramPacket(data,data.length,group,6000);
+                sender.send(dj);
+                //Log.d("TAG","send udp:"+dj);
+
             } catch(IOException e) {
+                sender.close();
                 e.printStackTrace();
             }
         }
     }
 
 
+    /*接收udp多播*/
     public static class udpReceiveBroadCast extends  Thread {
+        private MulticastSocket ms = null;
+        private DatagramPacket dp;
         @Override
         public void run() {
-            byte[] data = new byte[1024];
+            byte[] data = new byte[80];
             try {
-                DatagramSocket socket = new DatagramSocket(7412);
-                DatagramPacket packet = new DatagramPacket(data, data.length);
-                while (true){
-                    socket.receive(packet);
-                    String receive = new String(packet.getData(), 0, packet.getLength(), "utf-8");
-                    Log.e("TAG", "收到的内容为：" + receive);
-                }
+                InetAddress groupAddress = InetAddress.getByName("232.10.11.12");
+                ms = new MulticastSocket(6000);
+                ms.joinGroup(groupAddress);
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
+            while (true) {
+                try {
+                    dp = new DatagramPacket(data, data.length);
+                    if (ms != null)
+                        ms.receive(dp);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                if (dp.getAddress() != null) {
+                    final String quest_ip = dp.getAddress().toString();
+
+                    /* 若udp包的ip地址 是 本机的ip地址的话，丢掉这个包(不处理)*/
+
+                    //String host_ip = getLocalIPAddress();
+
+                    String host_ip = getLocalHostIp();
+
+//                    Log.d("TAG","host_ip:  --------------------  " + host_ip);
+//                    Log.d("TAG","quest_ip: --------------------  " + quest_ip.substring(1));
+
+                    if( (!host_ip.equals(""))  && host_ip.equals(quest_ip.substring(1)) ) {
+                        //continue;
+                    }
+                    Log.d("TAG","rcv: " + Arrays.toString(data) + "\n");
+                    //final String codeString = new String(data, 0, dp.getLength());
+                    //Log.d("TAG","收到来自: \n" + quest_ip.substring(1) + "\n" +"的udp请求\n");
+                    //Log.d("TAG","rcv: " + codeString + "\n\n");
+                }
+            }
         }
     }
-/*
-    public String getLocalHostIp() {
+
+    public static String getLocalHostIp() {
         String ipaddress = "";
         try {
             Enumeration<NetworkInterface> en = NetworkInterface
@@ -76,9 +108,7 @@ public class Udp {
                 // 遍历每一个接口绑定的所有ip
                 while (inet.hasMoreElements()) {
                     InetAddress ip = inet.nextElement();
-                    if (!ip.isLoopbackAddress()
-                            && InetAddressUtils.isIPv4Address(ip
-                            .getHostAddress())) {
+                    if (!ip.isLoopbackAddress()&&IpVersionCheckUtil.checkIPVersion(ip.getHostAddress())==1) {
                         return ip.getHostAddress();
                     }
                 }
@@ -90,9 +120,9 @@ public class Udp {
             e.printStackTrace();
         }
         return ipaddress;
-    }*/
+    }
 
-    private String getLocalIPAddress() {
+    private static String getLocalIPAddress() {
         try {
             for (Enumeration<NetworkInterface> en = NetworkInterface
                     .getNetworkInterfaces(); en.hasMoreElements();) {
