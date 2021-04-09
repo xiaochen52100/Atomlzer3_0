@@ -17,6 +17,7 @@ import android.widget.TextView;
 
 import com.liys.view.LineProView;
 
+import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -247,18 +248,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             System.arraycopy(DateForm.intToBytesArray(taskTime1),0,udpSendBuf,16,4);
             System.arraycopy(DateForm.intToBytesArray(taskData1.getLastTime()),0,udpSendBuf,20,4);
             System.arraycopy(DateForm.doubleToByteArray(taskData1.getProgess()),0,udpSendBuf,24,8);
+            Log.d("TAG","getLastTime1:"+taskData1.getLastTime());
 
             System.arraycopy(DateForm.intToBytesArray(taskTime2),0,udpSendBuf,32,4);
-            System.arraycopy(DateForm.intToBytesArray(taskData1.getLastTime()),0,udpSendBuf,36,4);
-            System.arraycopy(DateForm.doubleToByteArray(taskData1.getProgess()),0,udpSendBuf,40,8);
+            System.arraycopy(DateForm.intToBytesArray(taskData2.getLastTime()),0,udpSendBuf,36,4);
+            System.arraycopy(DateForm.doubleToByteArray(taskData2.getProgess()),0,udpSendBuf,40,8);
 
             System.arraycopy(DateForm.intToBytesArray(taskTime3),0,udpSendBuf,48,4);
-            System.arraycopy(DateForm.intToBytesArray(taskData1.getLastTime()),0,udpSendBuf,52,4);
-            System.arraycopy(DateForm.doubleToByteArray(taskData1.getProgess()),0,udpSendBuf,56,8);
+            System.arraycopy(DateForm.intToBytesArray(taskData3.getLastTime()),0,udpSendBuf,52,4);
+            System.arraycopy(DateForm.doubleToByteArray(taskData3.getProgess()),0,udpSendBuf,56,8);
 
-            System.arraycopy(DateForm.intToBytesArray(taskTime3),0,udpSendBuf,64,4);
-            System.arraycopy(DateForm.intToBytesArray(taskData1.getLastTime()),0,udpSendBuf,68,4);
-            System.arraycopy(DateForm.doubleToByteArray(taskData1.getProgess()),0,udpSendBuf,72,8);
+            System.arraycopy(DateForm.intToBytesArray(taskTime4),0,udpSendBuf,64,4);
+            System.arraycopy(DateForm.intToBytesArray(taskData4.getLastTime()),0,udpSendBuf,68,4);
+            System.arraycopy(DateForm.doubleToByteArray(taskData4.getProgess()),0,udpSendBuf,72,8);
             new Udp.udpSendBroadCast(udpSendBuf).start();
             //Log.d("TAG", Arrays.toString(udpSendBuf));
 
@@ -324,6 +326,55 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         lastTime4.setText("00:00");
                         device4Button.setText("开始");
                     }
+                    break;
+
+                case 5://设备1 开始
+                    device1Button.setText("停止");
+                    taskTime1=(int)msg.obj;
+                    np1.setValue(taskTime1);
+                    countdown1=System.currentTimeMillis()+taskTime1*60*1000;
+                    state1=true;
+                    break;
+                case 6://设备1 停止
+                    device1Button.setText("开始");
+                    countdown1=System.currentTimeMillis();
+                    state1=false;
+                    break;
+                case 7://设备2 开始
+                    device2Button.setText("停止");
+                    taskTime2=(int)msg.obj;
+                    np2.setValue(taskTime2);
+                    countdown2=System.currentTimeMillis()+taskTime2*60*1000;
+                    state2=true;
+                    break;
+                case 8://设备2 停止
+                    device2Button.setText("开始");
+                    countdown2=System.currentTimeMillis();
+                    state2=false;
+                    break;
+                case 9://设备3 开始
+                    device3Button.setText("停止");
+                    taskTime3=(int)msg.obj;
+                    np3.setValue(taskTime3);
+                    countdown3=System.currentTimeMillis()+taskTime3*60*1000;
+                    state3=true;
+                    break;
+                case 10://设备3 停止
+                    device3Button.setText("开始");
+                    countdown3=System.currentTimeMillis();
+                    state3=false;
+                    break;
+                case 11://设备4 开始
+                    device4Button.setText("停止");
+                    taskTime4=(int)msg.obj;
+                    np4.setValue(taskTime4);
+                    countdown4=System.currentTimeMillis()+taskTime4*60*1000;
+                    state4=true;
+                    break;
+                case 12://设备4 停止
+                    device4Button.setText("开始");
+                    countdown4=System.currentTimeMillis();
+                    state4=false;
                     break;
             }
         }
@@ -394,7 +445,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.cp_loading:
                 //Log.d("TAG","hello");
                 //new Udp.udpSendBroadCast("hello").start();
-                new Udp.udpReceiveBroadCast().start();
+                new Udp.udpReceiveBroadCast(mHandler).start();
                 break;
             case R.id.temperature:
                 //new Udp.udpReceiveBroadCast().start();

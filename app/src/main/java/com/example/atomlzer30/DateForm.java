@@ -3,17 +3,19 @@ package com.example.atomlzer30;
 public class DateForm {
     public static byte[] intToBytesArray(int n) {
         byte[] b = new byte[4];
-        for (int i = 0; i < 4; i++) {
-            b[i] = (byte) (n >> (24 - i * 8));
-        }
+        b[3] = (byte) (n & 0xff);
+        b[2] = (byte) (n >> 8 & 0xff);
+        b[1] = (byte) (n >> 16 & 0xff);
+        b[0] = (byte) (n >> 24 & 0xff);
         return b;
+
     }
-    public static int byteArrayToInt(byte[] b) {
-        int a = (((int) b[0]) << 24) + (((int) b[1]) << 16) + (((int) b[2]) << 8) + b[3];
-        if (a < 0) {
-            a = a + 256;
+    public static int byteArrayToInt(byte[] script) {
+        int sum = 0;
+        for (byte b : script) {
+            sum += 0xff & b;
         }
-        return a;
+        return sum;
     }
     public static double byteArrayToDouble(byte[] Array, int Pos) {
         long accum = 0;

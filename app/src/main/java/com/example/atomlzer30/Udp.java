@@ -1,5 +1,6 @@
 package com.example.atomlzer30;
 
+import android.os.Message;
 import android.util.Log;
 
 import java.io.IOException;
@@ -12,15 +13,15 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.Arrays;
 import java.util.Enumeration;
+import android.os.Handler;
 
 public class Udp {
-    /* 用于 udpReceiveAndTcpSend 的3个变量 */
-
     /* 发送udp多播 */
     public static class udpSendBroadCast extends Thread {
         MulticastSocket sender = null;
         DatagramPacket dj = null;
         InetAddress group = null;
+        private int PORT=6000;
 
         byte[] data = new byte[1024];
 
@@ -35,7 +36,7 @@ public class Udp {
         public void run() {
             try {
                 sender = new MulticastSocket();
-                group = InetAddress.getByName("232.10.11.12");
+                group = InetAddress.getByName("232.11.12.13");
                 dj = new DatagramPacket(data,data.length,group,6000);
                 sender.send(dj);
                 //Log.d("TAG","send udp:"+dj);
@@ -52,11 +53,29 @@ public class Udp {
     public static class udpReceiveBroadCast extends  Thread {
         private MulticastSocket ms = null;
         private DatagramPacket dp;
+        private Handler mhandler;
+        public udpReceiveBroadCast(Handler handler){
+            mhandler=handler;
+        }
+        private void sendHandler(int what,Object obj){
+            Message msg = new Message();
+            msg.what=what;
+            msg.obj=obj;
+            mhandler.sendMessage(msg);
+        }
+       private int bytesToInt(byte[] src, int offset) {
+           int value;
+           value = (int) ((src[offset] & 0xFF)
+                   | ((src[offset+1] & 0xFF)<<8)
+                   | ((src[offset+2] & 0xFF)<<16)
+                   | ((src[offset+3] & 0xFF)<<24));
+           return value;
+       }
         @Override
         public void run() {
-            byte[] data = new byte[80];
+
             try {
-                InetAddress groupAddress = InetAddress.getByName("232.10.11.12");
+                InetAddress groupAddress = InetAddress.getByName("232.11.12.13");
                 ms = new MulticastSocket(6000);
                 ms.joinGroup(groupAddress);
             } catch (Exception e) {
@@ -64,7 +83,9 @@ public class Udp {
             }
 
             while (true) {
+                byte[] data = new byte[10];
                 try {
+
                     dp = new DatagramPacket(data, data.length);
                     if (ms != null)
                         ms.receive(dp);
@@ -81,16 +102,41 @@ public class Udp {
 
                     String host_ip = getLocalHostIp();
 
-//                    Log.d("TAG","host_ip:  --------------------  " + host_ip);
-//                    Log.d("TAG","quest_ip: --------------------  " + quest_ip.substring(1));
+                    //Log.d("TAG","host_ip:  --------------------  " + host_ip);
+                    //Log.d("TAG","quest_ip: --------------------  " + quest_ip.substring(1));
 
                     if( (!host_ip.equals(""))  && host_ip.equals(quest_ip.substring(1)) ) {
-                        //continue;
+                        continue;
                     }
                     Log.d("TAG","rcv: " + Arrays.toString(data) + "\n");
-                    //final String codeString = new String(data, 0, dp.getLength());
-                    //Log.d("TAG","收到来自: \n" + quest_ip.substring(1) + "\n" +"的udp请求\n");
-                    //Log.d("TAG","rcv: " + codeString + "\n\n");
+                    int time=bytesToInt(data,1);
+                    switch ((int)data[0]){
+                        case 1:
+                            if (time==0)
+                                sendHandler(6,bytesToInt(data,1));
+                            else
+                                sendHandler(5,bytesToInt(data,1));
+                            break;
+                        case 2:
+                            if (time==0)
+                                sendHandler(8,bytesToInt(data,1));
+                            else
+                                sendHandler(7,bytesToInt(data,1));
+                            break;
+                        case 3:
+                            if (time==0)
+                                sendHandler(10,bytesToInt(data,1));
+                            else
+                                sendHandler(9,bytesToInt(data,1));
+                            break;
+                        case 4:
+                            if (time==0)
+                                sendHandler(12,bytesToInt(data,1));
+                            else
+                                sendHandler(11,bytesToInt(data,1));
+                            break;
+                    }
+
                 }
             }
         }
