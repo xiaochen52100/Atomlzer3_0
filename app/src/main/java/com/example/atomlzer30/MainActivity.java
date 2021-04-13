@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected CircleProgress mCpLoading;
     protected MyNumberPicker np1,np2,np3,np4;
     protected LineProView lineProView1,lineProView2,lineProView3,lineProView4;
-    protected TextView temperatureTextView;
+    protected TextView temperatureTextView,humidityTextView;
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
@@ -47,7 +47,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
         hideBottomUIMenu();
-
+        serialPortThread=new SerialPortThread(mHandler);
+        serialPortThread.openSerialPort();
         device1Button=findViewById(R.id.device1Button);
         device2Button=findViewById(R.id.device2Button);
         device3Button=findViewById(R.id.device3Button);
@@ -68,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         lineProView3=findViewById(R.id.lineProView3);
         lineProView4=findViewById(R.id.lineProView4);
         temperatureTextView=findViewById(R.id.temperature);
+        humidityTextView=findViewById(R.id.humidityTextView);
 
         device1Button.setOnClickListener(this);
         device2Button.setOnClickListener(this);
@@ -77,10 +79,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         np1.setMinValue(0);
         np1.setMaxValue(100);
-        np1.setValue(50);
+        np1.setValue(5);
 
         taskTime1=np1.getValue();
-        Log.d("TAG","taskTime1：" + taskTime1);
+        //Log.d("TAG","taskTime1：" + taskTime1);
         np1.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
         np1.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
             //当NunberPicker的值发生改变时，将会激发该方法
@@ -93,10 +95,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         np2.setMinValue(0);
         np2.setMaxValue(100);
-        np2.setValue(50);
+        np2.setValue(5);
         np2.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
         taskTime2=np2.getValue();
-        Log.d("TAG","taskTime2：" + taskTime2);
+        //Log.d("TAG","taskTime2：" + taskTime2);
         np2.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
         np2.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
             //当NunberPicker的值发生改变时，将会激发该方法
@@ -109,10 +111,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         np3.setMinValue(0);
         np3.setMaxValue(100);
-        np3.setValue(50);
+        np3.setValue(5);
         np3.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
         taskTime3=np3.getValue();
-        Log.d("TAG","taskTime3：" + taskTime3);
+        //Log.d("TAG","taskTime3：" + taskTime3);
         np3.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
         np3.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
             //当NunberPicker的值发生改变时，将会激发该方法
@@ -125,10 +127,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         np4.setMinValue(0);
         np4.setMaxValue(100);
-        np4.setValue(50);
+        np4.setValue(5);
         np4.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
         taskTime4=np4.getValue();
-        Log.d("TAG","taskTime4：" + taskTime4);
+        //Log.d("TAG","taskTime4：" + taskTime4);
         np4.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
         np4.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
             //当NunberPicker的值发生改变时，将会激发该方法
@@ -237,7 +239,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             byte[] sendBuf={0};
             sendBuf[0]=sendData;
             //Log.d("TAG","sendData:"+sendData);
-            //serialPortThread.sendSerialPort(sendBuf);
+            serialPortThread.sendSerialPort(sendBuf);
             //发送udp数据格式
             byte[] udpSendBuf=new byte[80];
             System.arraycopy(DateForm.intToBytesArray(temperature),0,udpSendBuf,0,4);
@@ -248,11 +250,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             System.arraycopy(DateForm.intToBytesArray(taskTime1),0,udpSendBuf,16,4);
             System.arraycopy(DateForm.intToBytesArray(taskData1.getLastTime()),0,udpSendBuf,20,4);
             System.arraycopy(DateForm.doubleToByteArray(taskData1.getProgess()),0,udpSendBuf,24,8);
-            Log.d("TAG","getLastTime1:"+taskData1.getLastTime());
+            //Log.d("TAG","getLastTime1:"+taskData1.getLastTime());
 
             System.arraycopy(DateForm.intToBytesArray(taskTime2),0,udpSendBuf,32,4);
             System.arraycopy(DateForm.intToBytesArray(taskData2.getLastTime()),0,udpSendBuf,36,4);
             System.arraycopy(DateForm.doubleToByteArray(taskData2.getProgess()),0,udpSendBuf,40,8);
+            //Log.d("TAG","getLastTime2:"+taskData2.getLastTime());
 
             System.arraycopy(DateForm.intToBytesArray(taskTime3),0,udpSendBuf,48,4);
             System.arraycopy(DateForm.intToBytesArray(taskData3.getLastTime()),0,udpSendBuf,52,4);
@@ -262,6 +265,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             System.arraycopy(DateForm.intToBytesArray(taskData4.getLastTime()),0,udpSendBuf,68,4);
             System.arraycopy(DateForm.doubleToByteArray(taskData4.getProgess()),0,udpSendBuf,72,8);
             new Udp.udpSendBroadCast(udpSendBuf).start();
+            byte[] LastTime1Byte=new byte[4];
+            System.arraycopy(udpSendBuf,20,LastTime1Byte,0,4);
+            //Log.d("TAG",DateForm.byteArrayToInt(LastTime1Byte)+"");
             //Log.d("TAG", Arrays.toString(udpSendBuf));
 
         }
@@ -375,6 +381,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     device4Button.setText("开始");
                     countdown4=System.currentTimeMillis();
                     state4=false;
+                    break;
+
+                case 13:
+                    byte[] rcvByte=(byte[])msg.obj;
+                    if (rcvByte[0]==(byte)0xFE){
+                        float tem1= (float) ((((rcvByte[3] << 8) | rcvByte[2] & 0xff))/10.0);
+                        //Log.v("tag","tem1:"+tem1);
+                        float hum1=(float) ((((rcvByte[7] << 8) | rcvByte[6] & 0xff)));
+                        float levels=(float)rcvByte[10];
+                        temperature=(int)tem1;
+                        humidity=(int)hum1;
+                        level=(int)levels;
+                        temperatureTextView.setText(temperature+"℃");
+                        humidityTextView.setText(humidity+"％");
+                        mCpLoading.setProgress(level);
+                    }
                     break;
             }
         }

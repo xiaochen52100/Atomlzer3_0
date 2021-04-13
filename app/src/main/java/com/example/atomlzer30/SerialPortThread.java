@@ -1,5 +1,6 @@
 package com.example.atomlzer30;
 
+import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.util.Log;
@@ -16,7 +17,11 @@ public class SerialPortThread {
     private String selectPort = "S0";
     private int selectSpeed = 115200;
     private String recvStr = "";
+    private Handler mHandler;
     private AtomicBoolean alive = new AtomicBoolean(true);
+    public SerialPortThread(Handler handler){
+        mHandler=handler;
+    }
     /**
      * 打开串口
      */
@@ -39,10 +44,11 @@ public class SerialPortThread {
                         if (serialPort != null) {
                             byte[] recvBytes = serialPort.receiveData(true);
                             if (recvBytes != null && recvBytes.length > 0) {
-                                Log.i("tag", "recvBytes === " + SerialPort.bytesToHexString(recvBytes, recvBytes.length));
+                                //Log.i("tag", "recvBytes === " + SerialPort.bytesToHexString(recvBytes, recvBytes.length));
                                 Message msg = new Message();
-                                msg.what = 2;
+                                msg.what = 13;
                                 msg.obj=recvBytes;
+                                mHandler.sendMessage(msg);
 //                                if (quickHandler!=null){
 //                                    quickHandler.sendMessage(msg);
 //
@@ -93,7 +99,7 @@ public class SerialPortThread {
     public void sendSerialPort(byte[] sendBuff){
         if (serialPort != null && serialPort.isOpen) {
             serialPort.sendData(sendBuff);
-            Log.i("tag",sendBuff+"");
+            //Log.i("tag",sendBuff+"");
         }
     }
 }

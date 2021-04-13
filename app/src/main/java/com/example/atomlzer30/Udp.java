@@ -63,13 +63,12 @@ public class Udp {
             msg.obj=obj;
             mhandler.sendMessage(msg);
         }
-       private int bytesToInt(byte[] src, int offset) {
-           int value;
-           value = (int) ((src[offset] & 0xFF)
-                   | ((src[offset+1] & 0xFF)<<8)
-                   | ((src[offset+2] & 0xFF)<<16)
-                   | ((src[offset+3] & 0xFF)<<24));
-           return value;
+       private int bytesToInt(byte[] b, int offset) {
+           int res = 0;
+           for(int i=offset;i<offset+4;i++){
+               res += (b[i] & 0xff) << ((3-i)*8);
+           }
+           return res;
        }
         @Override
         public void run() {
@@ -110,30 +109,49 @@ public class Udp {
                     }
                     Log.d("TAG","rcv: " + Arrays.toString(data) + "\n");
                     int time=bytesToInt(data,1);
+                    if (time<0&&time>100)   continue;
                     switch ((int)data[0]){
                         case 1:
                             if (time==0)
-                                sendHandler(6,bytesToInt(data,1));
-                            else
-                                sendHandler(5,bytesToInt(data,1));
+                                sendHandler(6,0);
+                            else{
+                                byte[] intbuf=new byte[4];
+                                System.arraycopy(data,1,intbuf,0,4);
+                                Log.d("TAG","time:"+DateForm.byteArrayToInt(intbuf));
+                                sendHandler(5,DateForm.byteArrayToInt(intbuf));
+                            }
+
                             break;
                         case 2:
                             if (time==0)
-                                sendHandler(8,bytesToInt(data,1));
-                            else
-                                sendHandler(7,bytesToInt(data,1));
+                                sendHandler(8,0);
+                            else{
+                                byte[] intbuf=new byte[4];
+                                System.arraycopy(data,1,intbuf,0,4);
+                                //Log.d("TAG","time:"+DateForm.byteArrayToInt(intbuf));
+                                sendHandler(7,DateForm.byteArrayToInt(intbuf));
+                            }
+
                             break;
                         case 3:
                             if (time==0)
-                                sendHandler(10,bytesToInt(data,1));
-                            else
-                                sendHandler(9,bytesToInt(data,1));
+                                sendHandler(10,0);
+                            else{
+                                byte[] intbuf=new byte[4];
+                                System.arraycopy(data,1,intbuf,0,4);
+                                //Log.d("TAG","time:"+DateForm.byteArrayToInt(intbuf));
+                                sendHandler(9,DateForm.byteArrayToInt(intbuf));
+                            }
                             break;
                         case 4:
                             if (time==0)
-                                sendHandler(12,bytesToInt(data,1));
-                            else
-                                sendHandler(11,bytesToInt(data,1));
+                                sendHandler(12,0);
+                            else{
+                                byte[] intbuf=new byte[4];
+                                System.arraycopy(data,1,intbuf,0,4);
+                                //Log.d("TAG","time:"+DateForm.byteArrayToInt(intbuf));
+                                sendHandler(11,DateForm.byteArrayToInt(intbuf));
+                            };
                             break;
                     }
 

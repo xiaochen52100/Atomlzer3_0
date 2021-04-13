@@ -4,18 +4,18 @@ public class DateForm {
     public static byte[] intToBytesArray(int n) {
         byte[] b = new byte[4];
         b[3] = (byte) (n & 0xff);
-        b[2] = (byte) (n >> 8 & 0xff);
-        b[1] = (byte) (n >> 16 & 0xff);
-        b[0] = (byte) (n >> 24 & 0xff);
+        b[2] = (byte) ((n&0xff00) >> 8);
+        b[1] = (byte) ((n&0xff0000)>> 16);
+        b[0] = (byte) ((n&0xff000000)>> 24);
         return b;
 
     }
-    public static int byteArrayToInt(byte[] script) {
-        int sum = 0;
-        for (byte b : script) {
-            sum += 0xff & b;
+    public static int byteArrayToInt(byte[] b) {
+        int res = 0;
+        for(int i=0;i<b.length;i++){
+            res += (b[i] & 0xff) << ((3-i)*8);
         }
-        return sum;
+        return res;
     }
     public static double byteArrayToDouble(byte[] Array, int Pos) {
         long accum = 0;
