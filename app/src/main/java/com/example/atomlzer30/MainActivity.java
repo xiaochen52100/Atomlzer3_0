@@ -155,6 +155,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             timerTask = new Timer(true);
             timerTask.schedule(countTask, 500, 1000);
         }
+        new Udp.udpReceiveBroadCast(mHandler).start();
     }
     protected void hideBottomUIMenu() {
         //隐藏虚拟按键，并且全屏
@@ -390,9 +391,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         //Log.v("tag","tem1:"+tem1);
                         float hum1=(float) ((((rcvByte[7] << 8) | rcvByte[6] & 0xff)));
                         float levels=(float)rcvByte[10];
+                        if (tem1>100) break;
+                        if (tem1<0) break;
+                        if (hum1>100) break;
+                        if (hum1<0) break;
+                        if (levels>100) break;
+                        if (levels<0) break;
                         temperature=(int)tem1;
                         humidity=(int)hum1;
-                        level=(int)levels;
+                        level=(int)levels-7;
+                        if (level<=0) level=0;
+                        if (level>=100) level=100;
                         temperatureTextView.setText(temperature+"℃");
                         humidityTextView.setText(humidity+"％");
                         mCpLoading.setProgress(level);
@@ -467,7 +476,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.cp_loading:
                 //Log.d("TAG","hello");
                 //new Udp.udpSendBroadCast("hello").start();
-                new Udp.udpReceiveBroadCast(mHandler).start();
+//                new Udp.udpReceiveBroadCast(mHandler).start();
                 break;
             case R.id.temperature:
                 //new Udp.udpReceiveBroadCast().start();
