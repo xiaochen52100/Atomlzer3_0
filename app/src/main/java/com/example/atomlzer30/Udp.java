@@ -22,22 +22,25 @@ public class Udp {
         DatagramPacket dj = null;
         InetAddress group = null;
         private int PORT=6000;
+        private String IP=null;
 
         byte[] data = new byte[1024];
 
         public udpSendBroadCast(String dataString) {
             data = dataString.getBytes();
         }
-        public udpSendBroadCast(byte[] dataByte) {
+        public udpSendBroadCast(String IP,int PORT,byte[] dataByte) {
             data = dataByte;
+            this.IP=IP;
+            this.PORT=PORT;
         }
 
         @Override
         public void run() {
             try {
                 sender = new MulticastSocket();
-                group = InetAddress.getByName("232.11.12.13");
-                dj = new DatagramPacket(data,data.length,group,6000);
+                group = InetAddress.getByName(IP);
+                dj = new DatagramPacket(data,data.length,group,PORT);
                 sender.send(dj);
                 //Log.d("TAG","send udp:"+dj);
 
@@ -54,8 +57,12 @@ public class Udp {
         private MulticastSocket ms = null;
         private DatagramPacket dp;
         private Handler mhandler;
-        public udpReceiveBroadCast(Handler handler){
+        private int PORT=6000;
+        private String IP=null;
+        public udpReceiveBroadCast(String IP,int PORT,Handler handler){
             mhandler=handler;
+            this.IP=IP;
+            this.PORT=PORT;
         }
         private void sendHandler(int what,Object obj){
             Message msg = new Message();
@@ -74,8 +81,8 @@ public class Udp {
         public void run() {
 
             try {
-                InetAddress groupAddress = InetAddress.getByName("232.11.12.13");
-                ms = new MulticastSocket(6000);
+                InetAddress groupAddress = InetAddress.getByName(IP);
+                ms = new MulticastSocket(PORT);
                 ms.joinGroup(groupAddress);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -108,6 +115,12 @@ public class Udp {
                         continue;
                     }
                     Log.d("TAG","rcv: " + Arrays.toString(data) + "\n");
+                    if (data[0]==0x7f){
+                        int temperature=bytesToInt(data,3);
+                        int humidity=bytesToInt(data,7);
+                        Log.d("TAG","temperature: " + temperature);
+                        continue;
+                    }
                     int time=bytesToInt(data,1);
                     if (time<0&&time>100)   continue;
                     switch ((int)data[0]){
