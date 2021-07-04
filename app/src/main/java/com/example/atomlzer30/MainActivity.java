@@ -23,6 +23,7 @@ import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     public  SerialPortThread serialPortThread;
+    private boolean first=false;
     private long countdown1=0,countdown2=0;//设备倒计时时长
     private int taskTime1=0,taskTime2=0;//设备定时时长
     private Timer timerTask;//计时器
@@ -114,12 +115,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
         mCpLoading.setOnClickListener(this);
-        if (timerTask==null){
-            timerTask = new Timer(true);
-            timerTask.schedule(countTask, 500, 1000);
-        }
-        new Udp.udpReceiveBroadCast("232.11.12.13",6000,mHandler).start();
-        new Udp.udpReceiveBroadCast("232.11.12.13",7000,mHandler).start();
+            if (timerTask==null){
+                timerTask = new Timer(true);
+                timerTask.schedule(countTask, 500, 1000);
+            }
+            new Udp.udpReceiveBroadCast("232.11.12.13",6000,mHandler).start();
+
+
+        //new Udp.udpReceiveBroadCast("232.11.12.13",7000,mHandler).start();
+    }
+    @Override protected void onDestroy() {
+        timerTask.cancel();
+        timerTask=null;
+        super.onDestroy();
     }
     protected void hideBottomUIMenu() {
         //隐藏虚拟按键，并且全屏
@@ -136,6 +144,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
     public TimerTask countTask = new TimerTask() {
         public void run() {
+            Log.d("TAG","test");
             long currentTime = System.currentTimeMillis();
             TaskData taskData1=new TaskData();
             if (currentTime>=countdown1){//结束
@@ -171,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             byte[] sendBuf={0};
             sendBuf[0]=sendData;
-            //Log.d("TAG","sendData:"+sendData);
+            Log.d("TAG","sendData:"+sendData);
             serialPortThread.sendSerialPort(sendBuf);
             //发送udp数据格式
             byte[] udpSendBuf=new byte[80];
@@ -290,14 +299,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         if (levels<0) break;
                         temperature=(int)tem1;
                         humidity=(int)hum1;
-                        level=(int)((levels-7)/34.00*100);//用于液位校准 7-41
+                        level=(int)((levels-17)/24.00*100);//用于液位校准 7-41
                         if (level<=0) level=0;
                         if (level>=100) level=100;
                         temperatureTextView.setText(temperature+"℃");
                         humidityTextView.setText(humidity+"％");
-
+                        //mCpLoading.setProgress(level);
                         levelCount++;
-                        if (levelCount==3){
+                        if (levelCount==2){
                             mCpLoading.setProgress(level);
                             levelCount=0;
                         }
