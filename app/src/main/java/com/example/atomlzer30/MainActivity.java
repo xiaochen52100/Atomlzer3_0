@@ -21,6 +21,8 @@ import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.example.atomlzer30.CloseBarUtil.showNavigation;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     public  SerialPortThread serialPortThread;
     private boolean first=false;
@@ -31,8 +33,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private byte sendData=0x20;
     private int temperature=25;
     private int humidity =60;
-    private int level=90;
+    private int level=0;
     private int levelCount=0;
+    private int finshFlag=0;
     /***********控件初始化*************/
     protected DashboardView tempDashboardView,humDashboardView,levelDashboard;
     protected Button device1Button,device2Button;
@@ -42,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected LineProView lineProView1,lineProView2;
     protected TextView temperatureTextView,humidityTextView;
 
+
     @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
         hideBottomUIMenu();
+        CloseBarUtil.closeBar();
         serialPortThread=new SerialPortThread(mHandler);
         serialPortThread.openSerialPort();
         device1Button=findViewById(R.id.device1Button);
@@ -107,15 +112,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mCpLoading = findViewById(R.id.cp_loading);
         //mCpLoading.setProgress(100,5000);
-        mCpLoading.setProgress(90);
+        mCpLoading.setProgress(0);
         mCpLoading.setOnCircleProgressListener(new CircleProgress.OnCircleProgressListener() {
             @Override
             public boolean OnCircleProgress(int progress) {
                 return false;
             }
         });
-        mCpLoading.setOnClickListener(this);
-            if (timerTask==null){
+        mCpLoading.setOnClickListener(new DoubleClickListener() {
+            @Override
+            public void onDoubleClick(View v) {
+                //CloseBarUtil.showBar();
+                finshFlag++;
+                if (finshFlag==2){
+                    showNavigation();
+                    finish();
+                }
+
+            }
+        });
+
+        if (timerTask==null){
                 timerTask = new Timer(true);
                 timerTask.schedule(countTask, 500, 1000);
             }
@@ -352,15 +369,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     state2=false;
                 }
                 break;
-
-            case R.id.cp_loading:
-                //Log.d("TAG","hello");
-                //new Udp.udpSendBroadCast("hello").start();
-//                new Udp.udpReceiveBroadCast(mHandler).start();
-                break;
             case R.id.temperature:
                 //new Udp.udpReceiveBroadCast().start();
                 break;
         }
     }
+
+
 }
