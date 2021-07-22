@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -344,18 +345,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.device1Button:
-                if (!state1){
-                    device1Button.setText("停止");
-                    long currentTime = System.currentTimeMillis();
-                    countdown1=currentTime+taskTime1*60*1000;
-                    state1=true;
-                }else {
-                    device1Button.setText("开始");
-                    long currentTime = System.currentTimeMillis();
-                    countdown1=System.currentTimeMillis();
-                    state1=false;
+            if (!state1){
+                device1Button.setText("停止");
+                long currentTime = System.currentTimeMillis();
+                countdown1=currentTime+taskTime1*60*1000;
+                state1=true;
+
+            }else {
+                //device1Button.setText("开始");
+                long currentTime = System.currentTimeMillis();
+                countdown1=System.currentTimeMillis();
+                sendHandler(10,null);
+            }
+            CountDownTimer counttimer3 = new CountDownTimer(5000, 100) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                    //device1Button.setText(((millisUntilFinished-1) / 1000)+"秒后停止");
+                    device1Button.setEnabled(false);
                 }
-                break;
+                @Override
+                public void onFinish() {
+                    device1Button.setEnabled(true);
+                }
+            };
+            counttimer3.start();
+            break;
             case R.id.device2Button:
                 if (!state2){
                     device2Button.setText("停止");
@@ -363,11 +377,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     countdown2=currentTime+taskTime2*60*1000;
                     state2=true;
                 }else {
-                    device2Button.setText("开始");
+                    //device2Button.setText("开始");
                     long currentTime = System.currentTimeMillis();
                     countdown2=System.currentTimeMillis();
-                    state2=false;
+                    sendHandler(11,null);
+
                 }
+                CountDownTimer counttimer4 = new CountDownTimer(5000, 100) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                        //device1Button.setText(((millisUntilFinished-1) / 1000)+"秒后停止");
+                        device2Button.setEnabled(false);
+                    }
+                    @Override
+                    public void onFinish() {
+                        device2Button.setEnabled(true);
+                    }
+                };
+                counttimer4.start();
                 break;
             case R.id.temperature:
                 //new Udp.udpReceiveBroadCast().start();
